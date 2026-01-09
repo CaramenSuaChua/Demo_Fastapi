@@ -52,7 +52,7 @@ jobs:
       if: steps.changed-files.outputs.any_changed == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        LLM_API_URL: ${{ secrets.LLM_API_URL || "http://127.0.0.1:8000/api/review/" }}
+        LLM_API_URL: ${{ secrets.LLM_API_URL}}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         python .github/scripts/code_review.py
