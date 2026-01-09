@@ -47,15 +47,15 @@ jobs:
           **/tests/**
           **/__tests__/**
     
-    # - name: Generate code review
-    #   id: review
-    #   if: steps.changed-files.outputs.any_changed == 'true'
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #     LLM_API_URL: ${{ secrets.LLM_API_URL || 'http://localhost:8000/api/review/' }}
-    #     PR_NUMBER: ${{ github.event.pull_request.number }}
-    #   run: |
-    #     python .github/scripts/code_review.py
+    - name: Generate code review
+      id: review
+      if: steps.changed-files.outputs.any_changed == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        LLM_API_URL: ${{ secrets.LLM_API_URL || "http://127.0.0.1:8000/api/review/" }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        python .github/scripts/code_review.py
         
     # - name: Post review as comment
     #   if: steps.changed-files.outputs.any_changed == 'true' && steps.review.outputs.has_review == 'true'
