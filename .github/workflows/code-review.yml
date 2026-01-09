@@ -70,6 +70,7 @@ jobs:
           echo "${{ steps.review.outputs.review_content }}"
         else
           echo "No review was generated."
+          echo "${{ steps.review.outputs.review_content }}"
         fi
         echo ""
         echo "=============================="
