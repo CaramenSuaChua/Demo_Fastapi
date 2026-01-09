@@ -61,14 +61,133 @@ def get_file_extension(file_path: str) -> str:
     """Get file extension"""
     return Path(file_path).suffix.lower()
 
-def is_code_file(file_path: str) -> bool:
+def is_code_file(filename: str) -> bool:
     """Check if file is a code file"""
     code_extensions = {
         '.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.cpp', '.c', '.h', 
         '.hpp', '.go', '.rs', '.rb', '.php', '.swift', '.kt', '.scala',
         '.cs', '.html', '.css', '.scss', '.sass', '.less', '.vue', '.svelte'
     }
-    return get_file_extension(file_path) in code_extensions
+    file_path = Path(filename)
+    extension = file_path.suffix.lower()
+    
+    # Check nếu là file đặc biệt (không có extension nhưng là code)
+    if not extension:
+        # Check for files without extension but known as code files
+        filename_lower = filename.lower()
+        if filename_lower in ['dockerfile', 'makefile', 'docker-compose.yml']:
+            return True
+        # Check if file starts with dot (hidden config files)
+        if filename_lower.startswith('.'):
+            return filename_lower not in ['.gitignore', '.env', '.env.example']
+    
+    return extension in code_extensions
+
+def should_ignore_file(filename: str) -> bool:
+    """Check if file should be ignored"""
+    filename_lower = filename.lower()
+    
+    # Các pattern cần ignore
+    ignore_list = [
+        # Lock files
+        'package-lock.json',
+        'yarn.lock',
+        'pnpm-lock.yaml',
+        'poetry.lock',
+        'pipfile.lock',
+        'composer.lock',
+        'gemfile.lock',
+        
+        # Minified files
+        '.min.js',
+        '.min.css',
+        
+        # Compiled/binary files
+        '.pyc',
+        '.pyo',
+        '.pyd',
+        '.so',
+        '.dll',
+        '.exe',
+        '.dylib',
+        '.class',
+        '.jar',
+        '.war',
+        '.ear',
+        
+        # Log files
+        '.log',
+        
+        # Temporary files
+        '.tmp',
+        '.temp',
+        '.bak',
+        '.swp',
+        '.swo',
+        
+        # IDE files
+        '.idea/',
+        '.vscode/',
+        '.vs/',
+        
+        # OS files
+        '.ds_store',
+        'thumbs.db',
+        
+        # Image/video files
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg',
+        '.mp4', '.avi', '.mov', '.mkv',
+        '.mp3', '.wav', '.ogg',
+        
+        # Font files
+        '.ttf', '.otf', '.woff', '.woff2',
+        
+        # Archive files
+        '.zip', '.tar', '.gz', '.7z', '.rar',
+        
+        # Document files
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    ]
+    
+    # Check các thư mục cần ignore
+    if any(filename_lower.startswith(pattern) for pattern in [
+        'node_modules/',
+        'vendor/',
+        'dist/',
+        'build/',
+        'out/',
+        'target/',
+        '__pycache__/',
+        '.git/',
+        '.github/',
+        '.next/',
+        '.nuxt/',
+        '.output/',
+        'coverage/',
+        '.nyc_output/',
+        '.pytest_cache/',
+        '.mypy_cache/',
+        '.ruff_cache/',
+        '.venv/',
+        'venv/',
+        'env/',
+        '.env',
+        '.env.',
+    ]):
+        return True
+    
+    # Check các file cụ thể
+    for pattern in ignore_list:
+        if pattern.endswith('/'):
+            if filename_lower.startswith(pattern[:-1]):
+                return True
+        elif pattern.startswith('.'):
+            if filename_lower.endswith(pattern):
+                return True
+        elif filename_lower == pattern:
+            return True
+    
+    return False
 
 def call_llm_api(prompt: str) -> str:
     """Call LLM API for code review"""
