@@ -68,7 +68,7 @@ jobs:
         echo "📋 ====== REVIEW RESULTS ======"
         echo ""
         if [[ "${{ steps.review.outputs.has_review }}" == "true" ]]; then
-          echo "${{ steps.review.outputs.review_content }}"
+          echo "${{ steps.review }}"
         else
           echo "No review was generated."
           echo "${{ steps.review.outputs.review_content }}"
