@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environments
+.env
+.venv
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build and distribution
+build/
+dist/
+*.spec
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+*.sqlite3-journal
+
+# Coverage
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints
+
+# My project specific
+prompts/.temp*
+*.tmp
+test_output/
