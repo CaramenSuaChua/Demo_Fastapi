@@ -57,42 +57,42 @@ jobs:
       run: |
         python .github/scripts/code_review.py
         
-    # - name: Post review as comment
-    #   if: steps.changed-files.outputs.any_changed == 'true' && steps.review.outputs.has_review == 'true'
-    #   uses: actions/github-script@v6
-    #   with:
-    #     script: |
-    #       const reviewContent = `## 🤖 AI Code Review\n\n${process.env.REVIEW_RESULT}`;
+    - name: Post review as comment
+      if: steps.changed-files.outputs.any_changed == 'true' && steps.review.outputs.has_review == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const reviewContent = `## 🤖 AI Code Review\n\n${process.env.REVIEW_RESULT}`;
           
-    #       // Xóa comment cũ nếu có
-    #       const { data: comments } = await github.rest.issues.listComments({
-    #         owner: context.repo.owner,
-    #         repo: context.repo.repo,
-    #         issue_number: ${{ github.event.pull_request.number }}
-    #       });
+          // Xóa comment cũ nếu có
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: ${{ github.event.pull_request.number }}
+          });
           
-    #       const botComments = comments.filter(comment => 
-    #         comment.body.includes('🤖 AI Code Review') || 
-    #         comment.user.login === 'github-actions[bot]'
-    #       );
+          const botComments = comments.filter(comment => 
+            comment.body.includes('🤖 AI Code Review') || 
+            comment.user.login === 'github-actions[bot]'
+          );
           
-    #       for (const comment of botComments) {
-    #         await github.rest.issues.deleteComment({
-    #           owner: context.repo.owner,
-    #           repo: context.repo.repo,
-    #           comment_id: comment.id
-    #         });
-    #       }
+          for (const comment of botComments) {
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: comment.id
+            });
+          }
           
-    #       // Tạo comment mới
-    #       await github.rest.issues.createComment({
-    #         owner: context.repo.owner,
-    #         repo: context.repo.repo,
-    #         issue_number: ${{ github.event.pull_request.number }},
-    #         body: reviewContent
-    #       });
-    #   env:
-    #     REVIEW_RESULT: ${{ steps.review.outputs.review_content }}
+          // Tạo comment mới
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: ${{ github.event.pull_request.number }},
+            body: reviewContent
+          });
+      env:
+        REVIEW_RESULT: ${{ steps.review.outputs.review_content }}
     
     # - name: Skip if no code files changed
     #   if: steps.changed-files.outputs.any_changed == 'false'
