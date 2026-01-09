@@ -54,45 +54,62 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         LLM_API_URL: ${{ secrets.LLM_API_URL}}
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
+        echo "📊 Starting code review process..."
+        echo "🔗 API URL: ${LLM_API_URL}"
         python .github/scripts/code_review.py
+
+    - name: Print review results
+      if: always()
+      run: |
+        echo "📋 ====== REVIEW RESULTS ======"
+        echo ""
+        if [[ "${{ steps.review.outputs.has_review }}" == "true" ]]; then
+          echo "${{ steps.review.outputs.review_content }}"
+        else
+          echo "No review was generated."
+        fi
+        echo ""
+        echo "=============================="
         
-    - name: Post review as comment
-      if: steps.changed-files.outputs.any_changed == 'true' && steps.review.outputs.has_review == 'true'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const reviewContent = `## 🤖 AI Code Review\n\n${process.env.REVIEW_RESULT}`;
+    # - name: Post review as comment
+    #   if: steps.changed-files.outputs.any_changed == 'true' && steps.review.outputs.has_review == 'true'
+    #   uses: actions/github-script@v6
+    #   with:
+    #     script: |
+    #       const reviewContent = `## 🤖 AI Code Review\n\n${process.env.REVIEW_RESULT}`;
           
-          // Xóa comment cũ nếu có
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: ${{ github.event.pull_request.number }}
-          });
+    #       // Xóa comment cũ nếu có
+    #       const { data: comments } = await github.rest.issues.listComments({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         issue_number: ${{ github.event.pull_request.number }}
+    #       });
           
-          const botComments = comments.filter(comment => 
-            comment.body.includes('🤖 AI Code Review') || 
-            comment.user.login === 'github-actions[bot]'
-          );
+    #       const botComments = comments.filter(comment => 
+    #         comment.body.includes('🤖 AI Code Review') || 
+    #         comment.user.login === 'github-actions[bot]'
+    #       );
           
-          for (const comment of botComments) {
-            await github.rest.issues.deleteComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: comment.id
-            });
-          }
+    #       for (const comment of botComments) {
+    #         await github.rest.issues.deleteComment({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           comment_id: comment.id
+    #         });
+    #       }
           
-          // Tạo comment mới
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: ${{ github.event.pull_request.number }},
-            body: reviewContent
-          });
-      env:
-        REVIEW_RESULT: ${{ steps.review.outputs.review_content }}
+    #       // Tạo comment mới
+    #       await github.rest.issues.createComment({
+    #         owner: context.repo.owner,
+    #         repo: context.repo.repo,
+    #         issue_number: ${{ github.event.pull_request.number }},
+    #         body: reviewContent
+    #       });
+    #   env:
+    #     REVIEW_RESULT: ${{ steps.review.outputs.review_content }}
     
     # - name: Skip if no code files changed
     #   if: steps.changed-files.outputs.any_changed == 'false'
