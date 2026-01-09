@@ -40,6 +40,7 @@ jobs:
           **/*.rs
           **/*.rb
           **/*.php
+          **/*.yml
         files_ignore: |
           **/*.test.*
           **/*.spec.*
