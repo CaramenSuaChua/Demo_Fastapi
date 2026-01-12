@@ -104,29 +104,6 @@ jobs:
             
             console.log(`Found ${botComments.length} old bot comments to delete`);
             
-            for (const comment of botComments) {
-              try {
-                await github.rest.issues.deleteComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: comment.id
-                });
-                console.log(`Deleted comment ${comment.id}`);
-              } catch (error) {
-                console.log(`Error deleting comment ${comment.id}:`, error.message);
-              }
-            }
-            
-            // Tạo comment mới
-            const newComment = await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: reviewContent
-            });
-            
-            console.log(`✅ Posted new comment with ID: ${newComment.data.id}`);
-            
           } catch (error) {
             console.error("❌ Error posting comment:", error);
             throw error;
