@@ -5,6 +5,11 @@ on:
     types: [opened, synchronize, reopened]
     branches: [ main, master, develop ]
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   code-review:
     runs-on: ubuntu-latest
@@ -77,34 +82,121 @@ jobs:
         
         echo ""
         echo "=============================="
-    
+
     - name: Post review as comment
       if: steps.review.outputs.has_review == 'true'
       uses: actions/github-script@v6
+      env:
+        # Truyền nội dung qua biến môi trường để an toàn tuyệt đối
+        RAW_REVIEW_CONTENT: ${{ steps.review.outputs.review_content }}
       with:
         script: |
-          // Decode the review content
-          const reviewContent = `## 🤖 AI Code Review\n\n${{ steps.review.outputs.review_content }}`;
+          // Lấy nội dung từ biến môi trường
+          let reviewBody = process.env.RAW_REVIEW_CONTENT || "";
           
-          console.log("Posting review comment...");
-          console.log("Review length:", reviewContent.length);
+          // Decode các ký tự xuống dòng nếu cần (tùy thuộc vào cách output của script python)
+          reviewBody = reviewBody.replace(/%0A/g, '\n').replace(/%0D/g, '\r');
           
+          // Loại bỏ dấu ngoặc kép thừa ở đầu/cuối nếu script python trả về dạng chuỗi bọc trong ""
+          reviewBody = reviewBody.replace(/^"|"$/g, '');
+
+          const header = "## 🤖 AI Code Review\n\n";
+          const finalBody = header + reviewBody;
+          
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request ? context.payload.pull_request.number : context.issue.number;
+
+          if (!issue_number) {
+            console.log("Could not find issue/pull request number.");
+            return;
+          }
+
           try {
-            // Xóa comment cũ nếu có (của bot)
+            // 1. Tìm và xóa các comment cũ của bot để tránh spam
             const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
+              owner,
+              repo,
+              issue_number
             });
             
-            const botComments = comments.filter(comment => 
-              comment.body.includes('🤖 AI Code Review') || 
-              comment.user.login === 'github-actions[bot]'
+            const botComments = comments.filter(c => 
+              c.body.includes('## 🤖 AI Code Review') || 
+              (c.user && c.user.login === 'github-actions[bot]')
             );
             
-            console.log(`Found ${botComments.length} old bot comments to delete`);
+            for (const comment of botComments) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id: comment.id
+              });
+              console.log(`Deleted old comment: ${comment.id}`);
+            }
             
+            // 2. Tạo comment mới
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: finalBody
+            });
+            
+            console.log("✅ Successfully posted review comment.");
           } catch (error) {
-            console.error("❌ Error posting comment:", error);
+            console.error("❌ Error:", error.message);
             throw error;
           }
+    
+    # - name: Post review as comment
+    #   if: steps.review.outputs.has_review == 'true'
+    #   uses: actions/github-script@v6
+    #   with:
+    #     script: |
+    #       // Decode the review content
+    #       const reviewContent = `## 🤖 AI Code Review\n\n${{ steps.review.outputs.review_content }}`;
+          
+    #       console.log("Posting review comment...");
+    #       console.log("Review length:", reviewContent.length);
+          
+    #       try {
+    #         // Xóa comment cũ nếu có (của bot)
+    #         const { data: comments } = await github.rest.issues.listComments({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           issue_number: context.issue.number
+    #         });
+            
+    #         const botComments = comments.filter(comment => 
+    #           comment.body.includes('🤖 AI Code Review') || 
+    #           comment.user.login === 'github-actions[bot]'
+    #         );
+            
+    #         console.log(`Found ${botComments.length} old bot comments to delete`);
+            
+    #         for (const comment of botComments) {
+    #           try {
+    #             await github.rest.issues.deleteComment({
+    #               owner: context.repo.owner,
+    #               repo: context.repo.repo,
+    #               comment_id: comment.id
+    #             });
+    #             console.log(`Deleted comment ${comment.id}`);
+    #           } catch (error) {
+    #             console.log(`Error deleting comment ${comment.id}:`, error.message);
+    #           }
+    #         }
+            
+    #         // Tạo comment mới
+    #         const newComment = await github.rest.issues.createComment({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           issue_number: context.issue.number,
+    #           body: reviewContent
+    #         });
+            
+    #         console.log(`✅ Posted new comment with ID: ${newComment.data.id}`);
+            
+    #       } catch (error) {
+    #         console.error("❌ Error posting comment:", error);
+    #         throw error;
+    #       }
