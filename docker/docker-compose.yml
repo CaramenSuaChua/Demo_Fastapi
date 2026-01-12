@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  fastapi-llm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: fastapi-llm-server
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    volumes:
+      - ../prompts:/app/prompts:ro
+      - ../.env.docker:/app/.env:ro
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - llm-network
+
+networks:
+  llm-network:
+    driver: bridge
