@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  fastapi-llm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: fastapi-llm-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    network_mode: host
+    environment:
+      # Dùng service name thay vì IP
+      #- OLLAMA_BASE_URL=http://192.168.200.77/v1
+      - OLLAMA_BASE_URL=https://llm.nxcom.vn/v1
+      - OLLAMA_API_KEY=sk-H9RCqvDaG5_NEPEyFOJxHw
+      - OLLAMA_MODEL=gemini/gemini-2.0-flash-lite
+      - HOST=0.0.0.0
+      - PORT=8080
+      - DEBUG=true
+      - AI_MAX_TOKENS=4000
+      - AI_TEMPERATURE=1
+      - AI_CODE_REVIEW_PROMPT_FILE=prompt.txt
+    volumes:
+      - ../prompt.txt:/app/prompt.txt:ro

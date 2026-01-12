@@ -31,8 +31,8 @@ class Settings:
     
     # Ollama
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-    OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "ollama")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama2")
+    OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY", "sk-H9RCqvDaG5_NEPEyFOJxHw")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemini/gemini-2.0-flash-lite")
     
     # AI
     AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", "4000"))

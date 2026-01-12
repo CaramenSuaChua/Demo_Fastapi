@@ -62,6 +62,8 @@ async def code_review(request: QuestionRequest):
         
         # Lấy prompt từ file
         review_prompt = settings.AI_CODE_REVIEW_PROMPT
+        print(review_prompt)
+        # console.log(review_prompt)
         
         # Kiểm tra xem có prompt không
         if not review_prompt or review_prompt == "":
