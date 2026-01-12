@@ -58,17 +58,23 @@ jobs:
     
     - name: Print review results
       if: always()
+      env:
+        # Đưa nội dung vào biến môi trường để tránh lỗi cú pháp Bash
+        REVIEW_CONTENT: ${{ steps.review.outputs.review_content }}
+        HAS_REVIEW: ${{ steps.review.outputs.has_review }}
       run: |
         echo ""
         echo "📋 ====== REVIEW RESULTS ======"
         echo ""
-        if [[ "${{ steps.review.outputs.has_review }}" == "true" ]]; then
-          # Decode the escaped content
-          echo "${{ steps.review.outputs.review_content }}" | sed 's/%0A/\n/g' | sed 's/%0D/\r/g'
+        
+        if [[ "$HAS_REVIEW" == "true" ]]; then
+          # Sử dụng printf hoặc echo với biến môi trường giúp xử lý ký tự đặc biệt an toàn
+          echo "$REVIEW_CONTENT" | sed 's/%0A/\n/g' | sed 's/%0D/\r/g'
         else
           echo "No review was generated."
-          echo "Review output: ${{ steps.review.outputs.review_content }}"
+          echo "Review output: $REVIEW_CONTENT"
         fi
+        
         echo ""
         echo "=============================="
     
