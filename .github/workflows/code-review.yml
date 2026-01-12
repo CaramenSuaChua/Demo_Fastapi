@@ -78,56 +78,56 @@ jobs:
         echo ""
         echo "=============================="
     
-    # - name: Post review as comment
-    #   if: steps.review.outputs.has_review == 'true'
-    #   uses: actions/github-script@v6
-    #   with:
-    #     script: |
-    #       // Decode the review content
-    #       const reviewContent = `## 🤖 AI Code Review\n\n${{ steps.review.outputs.review_content }}`;
+    - name: Post review as comment
+      if: steps.review.outputs.has_review == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          // Decode the review content
+          const reviewContent = `## 🤖 AI Code Review\n\n${{ steps.review.outputs.review_content }}`;
           
-    #       console.log("Posting review comment...");
-    #       console.log("Review length:", reviewContent.length);
+          console.log("Posting review comment...");
+          console.log("Review length:", reviewContent.length);
           
-    #       try {
-    #         // Xóa comment cũ nếu có (của bot)
-    #         const { data: comments } = await github.rest.issues.listComments({
-    #           owner: context.repo.owner,
-    #           repo: context.repo.repo,
-    #           issue_number: context.issue.number
-    #         });
+          try {
+            // Xóa comment cũ nếu có (của bot)
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
             
-    #         const botComments = comments.filter(comment => 
-    #           comment.body.includes('🤖 AI Code Review') || 
-    #           comment.user.login === 'github-actions[bot]'
-    #         );
+            const botComments = comments.filter(comment => 
+              comment.body.includes('🤖 AI Code Review') || 
+              comment.user.login === 'github-actions[bot]'
+            );
             
-    #         console.log(`Found ${botComments.length} old bot comments to delete`);
+            console.log(`Found ${botComments.length} old bot comments to delete`);
             
-    #         for (const comment of botComments) {
-    #           try {
-    #             await github.rest.issues.deleteComment({
-    #               owner: context.repo.owner,
-    #               repo: context.repo.repo,
-    #               comment_id: comment.id
-    #             });
-    #             console.log(`Deleted comment ${comment.id}`);
-    #           } catch (error) {
-    #             console.log(`Error deleting comment ${comment.id}:`, error.message);
-    #           }
-    #         }
+            for (const comment of botComments) {
+              try {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id
+                });
+                console.log(`Deleted comment ${comment.id}`);
+              } catch (error) {
+                console.log(`Error deleting comment ${comment.id}:`, error.message);
+              }
+            }
             
-    #         // Tạo comment mới
-    #         const newComment = await github.rest.issues.createComment({
-    #           owner: context.repo.owner,
-    #           repo: context.repo.repo,
-    #           issue_number: context.issue.number,
-    #           body: reviewContent
-    #         });
+            // Tạo comment mới
+            const newComment = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: reviewContent
+            });
             
-    #         console.log(`✅ Posted new comment with ID: ${newComment.data.id}`);
+            console.log(`✅ Posted new comment with ID: ${newComment.data.id}`);
             
-    #       } catch (error) {
-    #         console.error("❌ Error posting comment:", error);
-    #         throw error;
-    #       }
+          } catch (error) {
+            console.error("❌ Error posting comment:", error);
+            throw error;
+          }
